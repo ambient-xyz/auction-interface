@@ -1,6 +1,6 @@
 use crate::instructions::AuctionInstructionAccounts;
-use ambient_auction_api::{CloseRequestAccounts, CloseRequestArgs, InstructionAccounts};
 use ambient_auction_api::error::AuctionError;
+use ambient_auction_api::{CloseRequestAccounts, CloseRequestArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
 use pinocchio::program_error::ProgramError;
@@ -11,7 +11,20 @@ pub struct CloseRequestInstructionAccounts<'a>(CloseRequestAccounts<'a, AccountI
 impl<'a> TryFrom<&'a [AccountInfo]> for CloseRequestInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [request_authority, job_request, bundle_payer, bundle, registry, ..] = accounts else {
+        let [
+            request_authority,
+            job_request,
+            bundle_payer,
+            bundle,
+            registry,
+            auction,
+            auction_payer,
+            child_bundle,
+            child_auction,
+            child_bundle_payer,
+            ..,
+        ] = accounts
+        else {
             return Err(ProgramError::NotEnoughAccountKeys);
         };
 
@@ -31,12 +44,21 @@ impl<'a> TryFrom<&'a [AccountInfo]> for CloseRequestInstructionAccounts<'a> {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
+        if auction.is_owned_by(&ambient_auction_api::ID) {
+            return Err(ProgramError::Custom(AuctionError::IncorrectAuction.code()));
+        }
+
         Ok(CloseRequestInstructionAccounts(CloseRequestAccounts {
             bundle,
             request_authority,
             job_request,
             bundle_payer,
-            registry
+            registry,
+            auction,
+            auction_payer,
+            child_bundle,
+            child_auction,
+            child_bundle_payer,
         }))
     }
 }

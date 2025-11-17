@@ -23,9 +23,9 @@ pub use submit_job::*;
 pub use submit_validation::*;
 
 use ambient_auction_api::{InstructionAccounts, InstructionData};
+use pinocchio::ProgramResult;
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
-use pinocchio::ProgramResult;
 
 pub trait ProcessInstruction<'a>: TryFrom<(&'a [AccountInfo], &'a [u8])> {
     type Accounts: AuctionInstructionAccounts<'a>;
