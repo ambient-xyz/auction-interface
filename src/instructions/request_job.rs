@@ -19,6 +19,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for RequestJobInstructionAccounts<'a> {
             registry,
             input_data,
             system_program,
+            config,
             bundle_auction_account_pairs @ ..,
         ] = accounts
         else {
@@ -41,6 +42,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for RequestJobInstructionAccounts<'a> {
             system_program,
             input_data,
             last_bundle,
+            config,
             bundle_auction_account_pairs,
             registry,
         }))
