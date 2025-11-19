@@ -36,6 +36,12 @@ impl<'a> TryFrom<&'a [AccountInfo]> for RequestJobInstructionAccounts<'a> {
                 AuctionError::NotEnoughBundleAuctionAccounts.code(),
             ))?;
 
+        if !config.is_owned_by(&ambient_auction_api::ID) {
+            return Err(ProgramError::Custom(
+                AuctionError::IllegalConfigOwner.code(),
+            ));
+        }
+
         Ok(RequestJobInstructionAccounts(RequestJobAccounts {
             payer,
             job_request,
