@@ -1,4 +1,6 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+use crate::VOTE_ID;
+use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{CloseBidAccounts, CloseBidArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -10,35 +12,48 @@ pub struct CloseBidInstructionAccounts<'a>(CloseBidAccounts<'a, AccountInfo>);
 impl<'a> TryFrom<&'a [AccountInfo]> for CloseBidInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [
+        let account_infos = CloseBidAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let CloseBidAccounts {
             bid_authority,
             bid,
-            auction_payer,
+            auction_payer: _,
             auction,
             bundle,
             vote_account,
             vote_authority,
             vote_program,
-            ..,
-        ] = accounts
-        else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+        } = account_infos;
 
         if !bundle.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::InvalidAccountOwner);
         }
 
-        Ok(CloseBidInstructionAccounts(CloseBidAccounts {
-            bid_authority,
-            bid,
-            auction_payer,
-            bundle,
-            vote_account,
-            vote_authority,
-            auction,
-            vote_program,
-        }))
+        if !bid.is_owned_by(&ambient_auction_api::ID) {
+            return Err(ProgramError::IllegalOwner);
+        }
+
+        if !auction.is_owned_by(&ambient_auction_api::ID) {
+            return Err(to_program_error(AuctionError::IncorrectAuction));
+        }
+
+        if !bid_authority.is_signer() {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        if !vote_authority.is_signer() {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        if !vote_account.is_owned_by(&VOTE_ID) {
+            return Err(ProgramError::IllegalOwner);
+        }
+
+        if vote_program.key() != &VOTE_ID {
+            return Err(ProgramError::IncorrectProgramId);
+        }
+
+        Ok(CloseBidInstructionAccounts(account_infos))
     }
 }
 

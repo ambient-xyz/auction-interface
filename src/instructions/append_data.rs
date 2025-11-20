@@ -1,35 +1,37 @@
-use crate::instructions::AuctionInstructionAccounts;
-use ambient_auction_api::{
-    AppendDataAccounts as AppendDataAccountsInner, AppendDataArgs, InstructionAccounts,
-};
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+use ambient_auction_api::{AppendDataAccounts, AppendDataArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
 use pinocchio::program_error::ProgramError;
 
 #[repr(transparent)]
-pub struct AppendDataInstructionAccounts<'a>(AppendDataAccountsInner<'a, AccountInfo>);
+pub struct AppendDataInstructionAccounts<'a>(AppendDataAccounts<'a, AccountInfo>);
 
 impl<'a> TryFrom<&'a [AccountInfo]> for AppendDataInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [data_authority, data_account, system_program, ..] = accounts else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+        let account_infos = AppendDataAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let AppendDataAccounts {
+            data_authority,
+            data_account,
+            system_program: _,
+        } = account_infos;
 
         if !data_account.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::InvalidAccountOwner);
         }
 
-        Ok(AppendDataInstructionAccounts(AppendDataAccountsInner {
-            data_authority,
-            system_program,
-            data_account,
-        }))
+        if !data_authority.is_signer() {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        Ok(AppendDataInstructionAccounts(account_infos))
     }
 }
 
 impl<'a> AuctionInstructionAccounts<'a> for AppendDataInstructionAccounts<'a> {
-    type Inner = AppendDataAccountsInner<'a, AccountInfo>;
+    type Inner = AppendDataAccounts<'a, AccountInfo>;
     fn inner(&self) -> &Self::Inner {
         &self.0
     }

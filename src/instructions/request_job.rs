@@ -1,4 +1,4 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{InstructionAccounts, RequestJobAccounts, RequestJobArgs};
 use pinocchio::account_info::AccountInfo;
@@ -13,45 +13,28 @@ pub struct RequestJobInstructionAccounts<'a>(
 impl<'a> TryFrom<&'a [AccountInfo]> for RequestJobInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [
-            payer,
-            job_request,
+        let account_infos = RequestJobAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let RequestJobAccounts {
+            payer: _,
+            job_request: _,
             registry,
-            input_data,
-            system_program,
+            input_data: _,
+            system_program: _,
             config,
-            bundle_auction_account_pairs @ ..,
-        ] = accounts
-        else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+            bundle_auction_account_pairs: _,
+            last_bundle: _,
+        } = account_infos;
 
         if !registry.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::IllegalOwner);
         }
 
-        let (last_bundle, bundle_auction_account_pairs) = bundle_auction_account_pairs
-            .split_last()
-            .ok_or(ProgramError::Custom(
-                AuctionError::NotEnoughBundleAuctionAccounts.code(),
-            ))?;
-
         if !config.is_owned_by(&ambient_auction_api::ID) {
-            return Err(ProgramError::Custom(
-                AuctionError::IllegalConfigOwner.code(),
-            ));
+            return Err(to_program_error(AuctionError::IllegalConfigOwner));
         }
 
-        Ok(RequestJobInstructionAccounts(RequestJobAccounts {
-            payer,
-            job_request,
-            system_program,
-            input_data,
-            last_bundle,
-            config,
-            bundle_auction_account_pairs,
-            registry,
-        }))
+        Ok(RequestJobInstructionAccounts(account_infos))
     }
 }
 

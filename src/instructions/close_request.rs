@@ -1,4 +1,4 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{CloseRequestAccounts, CloseRequestArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;
@@ -11,22 +11,20 @@ pub struct CloseRequestInstructionAccounts<'a>(CloseRequestAccounts<'a, AccountI
 impl<'a> TryFrom<&'a [AccountInfo]> for CloseRequestInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [
+        let account_infos = CloseRequestAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let CloseRequestAccounts {
             request_authority,
             job_request,
-            bundle_payer,
+            bundle_payer: _,
             bundle,
             registry,
             auction,
-            auction_payer,
-            child_bundle,
-            child_auction,
-            child_bundle_payer,
-            ..,
-        ] = accounts
-        else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+            auction_payer: _,
+            child_bundle: _,
+            child_auction: _,
+            child_bundle_payer: _,
+        } = account_infos;
 
         if !bundle.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::InvalidAccountOwner);
@@ -48,18 +46,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for CloseRequestInstructionAccounts<'a> {
             return Err(ProgramError::Custom(AuctionError::IncorrectAuction.code()));
         }
 
-        Ok(CloseRequestInstructionAccounts(CloseRequestAccounts {
-            bundle,
-            request_authority,
-            job_request,
-            bundle_payer,
-            registry,
-            auction,
-            auction_payer,
-            child_bundle,
-            child_auction,
-            child_bundle_payer,
-        }))
+        Ok(CloseRequestInstructionAccounts(account_infos))
     }
 }
 

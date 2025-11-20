@@ -1,4 +1,5 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+use crate::VOTE_ID;
 use ambient_auction_api::{InstructionAccounts, SubmitValidationAccounts, SubmitValidationArgs};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -10,39 +11,38 @@ pub struct SubmitValidationInstructionAccounts<'a>(SubmitValidationAccounts<'a, 
 impl<'a> TryFrom<&'a [AccountInfo]> for SubmitValidationInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [
+        let account_infos =
+            SubmitValidationAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let SubmitValidationAccounts {
             bundle,
             vote_account,
             vote_program,
             vote_authority,
             job_request,
-            ..,
-        ] = accounts
-        else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+        } = account_infos;
 
         if !bundle.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::IllegalOwner);
         }
 
         if !job_request.is_owned_by(&ambient_auction_api::ID) {
-            return Err(ProgramError::IllegalOwner);
+            return Err(ProgramError::InvalidAccountOwner);
         }
 
         if !vote_authority.is_signer() {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-        Ok(SubmitValidationInstructionAccounts(
-            SubmitValidationAccounts {
-                job_request,
-                bundle,
-                vote_account,
-                vote_program,
-                vote_authority,
-            },
-        ))
+        if vote_program.key() != &VOTE_ID {
+            return Err(ProgramError::IncorrectProgramId);
+        }
+
+        if !vote_account.is_owned_by(&VOTE_ID) {
+            return Err(ProgramError::IllegalOwner);
+        }
+
+        Ok(SubmitValidationInstructionAccounts(account_infos))
     }
 }
 

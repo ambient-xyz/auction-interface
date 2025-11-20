@@ -1,4 +1,6 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+use crate::VOTE_ID;
+use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{InstructionAccounts, RevealBidAccounts, RevealBidArgs};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -10,21 +12,18 @@ pub struct RevealBidInstructionAccounts<'a>(RevealBidAccounts<'a, AccountInfo>);
 impl<'a> TryFrom<&'a [AccountInfo]> for RevealBidInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [
+        let account_infos = RevealBidAccounts::try_from(accounts).map_err(to_program_error)?;
+        let RevealBidAccounts {
             bid_authority,
             bid,
             auction,
             bundle,
             vote_account,
             vote_authority,
-            ..,
-        ] = accounts
-        else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+        } = account_infos;
 
         if !auction.is_owned_by(&ambient_auction_api::ID) {
-            return Err(ProgramError::InvalidAccountOwner);
+            return Err(to_program_error(AuctionError::IncorrectAuction));
         }
 
         if !bid.is_owned_by(&ambient_auction_api::ID) {
@@ -39,14 +38,15 @@ impl<'a> TryFrom<&'a [AccountInfo]> for RevealBidInstructionAccounts<'a> {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-        Ok(RevealBidInstructionAccounts(RevealBidAccounts {
-            auction,
-            bid,
-            bid_authority,
-            bundle,
-            vote_account,
-            vote_authority,
-        }))
+        if !vote_authority.is_signer() {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        if !vote_account.is_owned_by(&VOTE_ID) {
+            return Err(ProgramError::InvalidAccountOwner);
+        }
+
+        Ok(RevealBidInstructionAccounts(account_infos))
     }
 }
 

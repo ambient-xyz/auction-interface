@@ -1,4 +1,4 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use ambient_auction_api::{CancelBundleAccounts, CancelBundleArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -10,21 +10,25 @@ pub struct CancelBundleInstructionAccounts<'a>(CancelBundleAccounts<'a, AccountI
 impl<'a> TryFrom<&'a [AccountInfo]> for CancelBundleInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [payer, bundle, child_bundle, registry, system_program, ..] = accounts else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+        let account_infos = CancelBundleAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let CancelBundleAccounts {
+            payer: _,
+            bundle,
+            child_bundle: _,
+            registry,
+            system_program: _,
+        } = account_infos;
 
         if !bundle.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::InvalidAccountOwner);
         }
 
-        Ok(CancelBundleInstructionAccounts(CancelBundleAccounts {
-            system_program,
-            payer,
-            bundle,
-            child_bundle,
-            registry,
-        }))
+        if !registry.is_owned_by(&ambient_auction_api::ID) {
+            return Err(ProgramError::IllegalOwner);
+        }
+
+        Ok(CancelBundleInstructionAccounts(account_infos))
     }
 }
 

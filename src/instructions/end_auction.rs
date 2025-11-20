@@ -1,4 +1,6 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+use crate::VOTE_ID;
+use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{EndAuctionAccounts, EndAuctionArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -10,24 +12,28 @@ pub struct EndAuctionInstructionAccounts<'a>(EndAuctionAccounts<'a, AccountInfo>
 impl<'a> TryFrom<&'a [AccountInfo]> for EndAuctionInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [auction, bundle, vote_account, payer, ..] = accounts else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+        let account_infos = EndAuctionAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let EndAuctionAccounts {
+            auction,
+            bundle,
+            vote_account,
+            payer: _,
+        } = account_infos;
 
         if !auction.is_owned_by(&ambient_auction_api::ID) {
-            return Err(ProgramError::InvalidAccountOwner);
+            return Err(to_program_error(AuctionError::IncorrectAuction));
         }
 
         if !bundle.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::IllegalOwner);
         }
 
-        Ok(EndAuctionInstructionAccounts(EndAuctionAccounts {
-            bundle,
-            vote_account,
-            auction,
-            payer,
-        }))
+        if !vote_account.is_owned_by(&VOTE_ID) {
+            return Err(ProgramError::InvalidAccountOwner);
+        }
+
+        Ok(EndAuctionInstructionAccounts(account_infos))
     }
 }
 

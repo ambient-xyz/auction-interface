@@ -1,4 +1,4 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use ambient_auction_api::{InitBundleAccounts, InitBundleArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -10,16 +10,9 @@ pub struct InitBundleInstructionAccounts<'a>(InitBundleAccounts<'a, AccountInfo>
 impl<'a> TryFrom<&'a [AccountInfo]> for InitBundleInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [payer, bundle, registry, system_program, ..] = accounts else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+        let account_infos = InitBundleAccounts::try_from(accounts).map_err(to_program_error)?;
 
-        Ok(InitBundleInstructionAccounts(InitBundleAccounts {
-            bundle,
-            payer,
-            registry,
-            system_program,
-        }))
+        Ok(InitBundleInstructionAccounts(account_infos))
     }
 }
 

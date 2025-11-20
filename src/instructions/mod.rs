@@ -24,10 +24,12 @@ pub use reveal_bid::*;
 pub use submit_job::*;
 pub use submit_validation::*;
 
+use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{InstructionAccounts, InstructionData};
-use pinocchio::ProgramResult;
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
+use pinocchio::program_error::ProgramError;
+use pinocchio::ProgramResult;
 
 pub trait ProcessInstruction<'a>: TryFrom<(&'a [AccountInfo], &'a [u8])> {
     type Accounts: AuctionInstructionAccounts<'a>;
@@ -42,4 +44,8 @@ pub trait AuctionInstructionAccounts<'a>: TryFrom<&'a [AccountInfo]> {
     type Inner: InstructionAccounts<'a, AccountInfo>;
     fn inner(&self) -> &Self::Inner;
     fn to_account_metas(&'a self) -> impl Iterator<Item = AccountMeta<'a>>;
+}
+
+fn to_program_error(e: AuctionError) -> ProgramError {
+    ProgramError::Custom(e.code())
 }

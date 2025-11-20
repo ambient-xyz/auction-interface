@@ -1,4 +1,4 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use ambient_auction_api::{InstructionAccounts, PlaceBidAccounts, PlaceBidArgs};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -10,20 +10,20 @@ pub struct PlaceBidInstructionAccounts<'a>(PlaceBidAccounts<'a, AccountInfo>);
 impl<'a> TryFrom<&'a [AccountInfo]> for PlaceBidInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [payer, bid, auction, system_program, ..] = accounts else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+        let account_infos = PlaceBidAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let PlaceBidAccounts {
+            payer: _,
+            bid: _,
+            auction,
+            system_program: _,
+        } = account_infos;
 
         if !auction.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::InvalidAccountOwner);
         }
 
-        Ok(PlaceBidInstructionAccounts(PlaceBidAccounts {
-            auction,
-            payer,
-            bid,
-            system_program,
-        }))
+        Ok(PlaceBidInstructionAccounts(account_infos))
     }
 }
 

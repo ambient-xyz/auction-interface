@@ -1,4 +1,5 @@
-use crate::instructions::AuctionInstructionAccounts;
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{InstructionAccounts, SubmitJobOutputAccounts, SubmitJobOutputArgs};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -10,21 +11,24 @@ pub struct SubmitJobOutputInstructionAccounts<'a>(SubmitJobOutputAccounts<'a, Ac
 impl<'a> TryFrom<&'a [AccountInfo]> for SubmitJobOutputInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [
+        let account_infos =
+            SubmitJobOutputAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let SubmitJobOutputAccounts {
             bid_authority,
             bundle,
             job_request,
             bid,
             auction,
-            output_data_account,
-            ..,
-        ] = accounts
-        else {
-            return Err(ProgramError::NotEnoughAccountKeys);
-        };
+            output_data_account: _,
+        } = account_infos;
+
+        if !bid_authority.is_signer() {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
 
         if !bundle.is_owned_by(&ambient_auction_api::ID) {
-            return Err(ProgramError::IllegalOwner);
+            return Err(ProgramError::InvalidAccountOwner);
         }
 
         if !job_request.is_owned_by(&ambient_auction_api::ID) {
@@ -32,23 +36,14 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SubmitJobOutputInstructionAccounts<'a> {
         }
 
         if !bid.is_owned_by(&ambient_auction_api::ID) {
-            return Err(ProgramError::IllegalOwner);
+            return Err(ProgramError::InvalidAccountOwner);
         }
 
         if !auction.is_owned_by(&ambient_auction_api::ID) {
-            return Err(ProgramError::IllegalOwner);
+            return Err(to_program_error(AuctionError::IncorrectAuction));
         }
 
-        Ok(SubmitJobOutputInstructionAccounts(
-            SubmitJobOutputAccounts {
-                job_request,
-                bid,
-                auction,
-                bid_authority,
-                output_data_account,
-                bundle,
-            },
-        ))
+        Ok(SubmitJobOutputInstructionAccounts(account_infos))
     }
 }
 
