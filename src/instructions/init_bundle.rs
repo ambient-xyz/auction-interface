@@ -10,7 +10,7 @@ pub struct InitBundleInstructionAccounts<'a>(InitBundleAccounts<'a, AccountInfo>
 impl<'a> TryFrom<&'a [AccountInfo]> for InitBundleInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let [payer, bundle, registry, system_program, ..] = accounts else {
+        let [payer, bundle, registry, system_program, auction,..] = accounts else {
             return Err(ProgramError::NotEnoughAccountKeys);
         };
 
@@ -19,6 +19,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for InitBundleInstructionAccounts<'a> {
             payer,
             registry,
             system_program,
+            auction,
         }))
     }
 }
