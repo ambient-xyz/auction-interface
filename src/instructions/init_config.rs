@@ -1,4 +1,5 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+#![cfg(feature = "global-config")]
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{InitConfigAccounts, InitConfigArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
