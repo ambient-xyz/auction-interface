@@ -1,4 +1,4 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{InstructionAccounts, RequestJobAccounts, RequestJobArgs};
 use pinocchio::account_info::AccountInfo;
@@ -21,15 +21,17 @@ impl<'a> TryFrom<&'a [AccountInfo]> for RequestJobInstructionAccounts<'a> {
             registry,
             input_data: _,
             system_program: _,
+            #[cfg(feature = "global-config")]
             config,
             bundle_auction_account_pairs: _,
             last_bundle: _,
         } = account_infos;
 
         if !registry.is_owned_by(&ambient_auction_api::ID) {
-            return Err(ProgramError::IllegalOwner);
+            return Err(ProgramError::Custom(AuctionError::InvalidRegistry.code()));
         }
 
+        #[cfg(feature = "global-config")]
         if !config.is_owned_by(&ambient_auction_api::ID) {
             return Err(to_program_error(AuctionError::IllegalConfigOwner));
         }
