@@ -10,6 +10,7 @@ mod request_job;
 mod reveal_bid;
 mod submit_job;
 mod submit_validation;
+mod update_verifier;
 
 pub use append_data::*;
 pub use cancel_bundle::*;
@@ -24,6 +25,7 @@ pub use request_job::*;
 pub use reveal_bid::*;
 pub use submit_job::*;
 pub use submit_validation::*;
+pub use update_verifier::*;
 
 use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{InstructionAccounts, InstructionData};
