@@ -1,5 +1,5 @@
+use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use crate::VOTE_ID;
-use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{InstructionAccounts, UpdateVerifierAccounts, UpdateVerifierArgs};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -8,6 +8,7 @@ use pinocchio::program_error::ProgramError;
 #[repr(transparent)]
 pub struct UpdateVerifierInstructionAccounts<'a>(UpdateVerifierAccounts<'a, AccountInfo>);
 
+#[cfg(not(feature = "global-config"))]
 impl<'a> TryFrom<&'a [AccountInfo]> for UpdateVerifierInstructionAccounts<'a> {
     type Error = ProgramError;
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
@@ -16,6 +17,32 @@ impl<'a> TryFrom<&'a [AccountInfo]> for UpdateVerifierInstructionAccounts<'a> {
         let UpdateVerifierAccounts {
             vote_account,
             vote_authority,
+            auction_verifiers: _auction_verifiers,
+        } = account_infos;
+
+        if !vote_authority.is_signer() {
+            return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        if !vote_account.is_owned_by(&VOTE_ID) {
+            return Err(ProgramError::IllegalOwner);
+        }
+
+        Ok(UpdateVerifierInstructionAccounts(account_infos))
+    }
+}
+
+#[cfg(feature = "global-config")]
+impl<'a> TryFrom<&'a [AccountInfo]> for UpdateVerifierInstructionAccounts<'a> {
+    type Error = ProgramError;
+    fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
+        let account_infos = UpdateVerifierAccounts::try_from(accounts).map_err(to_program_error)?;
+
+        let UpdateVerifierAccounts {
+            vote_account,
+            vote_authority,
+            auction_verifiers: _auction_verifiers,
+            config: _config,
         } = account_infos;
 
         if !vote_authority.is_signer() {
