@@ -3,6 +3,7 @@ mod cancel_bundle;
 mod close_bid;
 mod close_request;
 mod end_auction;
+mod init_auction_verifiers;
 mod init_bundle;
 mod init_config;
 mod place_bid;
@@ -10,12 +11,14 @@ mod request_job;
 mod reveal_bid;
 mod submit_job;
 mod submit_validation;
+mod update_verifier;
 
 pub use append_data::*;
 pub use cancel_bundle::*;
 pub use close_bid::*;
 pub use close_request::*;
 pub use end_auction::*;
+pub use init_auction_verifiers::*;
 pub use init_bundle::*;
 #[cfg(feature = "global-config")]
 pub use init_config::*;
@@ -24,13 +27,14 @@ pub use request_job::*;
 pub use reveal_bid::*;
 pub use submit_job::*;
 pub use submit_validation::*;
+pub use update_verifier::*;
 
 use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{InstructionAccounts, InstructionData};
-use pinocchio::ProgramResult;
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
 use pinocchio::program_error::ProgramError;
+use pinocchio::ProgramResult;
 
 pub trait ProcessInstruction<'a>: TryFrom<(&'a [AccountInfo], &'a [u8])> {
     type Accounts: AuctionInstructionAccounts<'a>;
