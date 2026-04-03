@@ -10,7 +10,7 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 pinocchio = "=0.9.2"
-ambient-auction-api = { git = "https://github.com/ambient-xyz/auction-api", rev = "aa46cc531e9083d2324fe79986524f23ae14e87c" }
+ambient-auction-api = { git = "https://github.com/ambient-xyz/auction-api", rev = "842fca45f47abdf8e177ca472524cb6f06cca9d6" }
 five8_const = "1.0.0"
 
 [features]
