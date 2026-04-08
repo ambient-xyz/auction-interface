@@ -1,5 +1,5 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use crate::VOTE_ID;
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
     ClaimVerifierLstakeV2Accounts, ClaimVerifierLstakeV2Args, InstructionAccounts,
 };
@@ -24,6 +24,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimVerifierLstakeV2InstructionAccounts
             verifier_vote_account,
             vote_program,
             vote_authority,
+            ..
         } = account_infos;
 
         if !bundle_escrow.is_owned_by(&ambient_auction_api::ID) {
@@ -40,6 +41,12 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimVerifierLstakeV2InstructionAccounts
 
         if !vote_authority.is_signer() {
             return Err(ProgramError::MissingRequiredSignature);
+        }
+
+        for bundle_verifier_page in account_infos.bundle_verifier_pages {
+            if !bundle_verifier_page.is_owned_by(&ambient_auction_api::ID) {
+                return Err(ProgramError::InvalidAccountOwner);
+            }
         }
 
         Ok(Self(account_infos))

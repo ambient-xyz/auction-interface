@@ -1,5 +1,5 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use crate::INSTRUCTIONS_SYSVAR_ID;
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
     FinalizeBundleVerificationV2Accounts, FinalizeBundleVerificationV2Args, InstructionAccounts,
 };
@@ -36,6 +36,12 @@ impl<'a> TryFrom<&'a [AccountInfo]> for FinalizeBundleVerificationV2InstructionA
 
         if instructions_sysvar.key() != &INSTRUCTIONS_SYSVAR_ID {
             return Err(ProgramError::UnsupportedSysvar);
+        }
+
+        for bundle_verifier_page in account_infos.bundle_verifier_pages {
+            if !bundle_verifier_page.is_owned_by(&ambient_auction_api::ID) {
+                return Err(ProgramError::InvalidAccountOwner);
+            }
         }
 
         Ok(Self(account_infos))
