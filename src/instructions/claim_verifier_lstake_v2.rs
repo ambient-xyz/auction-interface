@@ -43,6 +43,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimVerifierLstakeV2InstructionAccounts
             return Err(ProgramError::MissingRequiredSignature);
         }
 
+        super::validate_config_policy_owner(account_infos.config_policy)?;
+
         for bundle_verifier_page in account_infos.bundle_verifier_pages {
             if !bundle_verifier_page.is_owned_by(&ambient_auction_api::ID) {
                 return Err(ProgramError::InvalidAccountOwner);

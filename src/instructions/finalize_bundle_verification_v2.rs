@@ -23,6 +23,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for FinalizeBundleVerificationV2InstructionA
             coordinator,
             bundle_escrow,
             instructions_sysvar,
+            config_policy: _,
             ..
         } = account_infos;
 
@@ -37,6 +38,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for FinalizeBundleVerificationV2InstructionA
         if instructions_sysvar.key() != &INSTRUCTIONS_SYSVAR_ID {
             return Err(ProgramError::UnsupportedSysvar);
         }
+
+        super::validate_config_policy_owner(account_infos.config_policy)?;
 
         for bundle_verifier_page in account_infos.bundle_verifier_pages {
             if !bundle_verifier_page.is_owned_by(&ambient_auction_api::ID) {

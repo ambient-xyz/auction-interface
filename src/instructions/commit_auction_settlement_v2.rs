@@ -22,6 +22,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for CommitAuctionSettlementV2InstructionAcco
         let CommitAuctionSettlementV2Accounts {
             coordinator,
             bundle_escrow,
+            config_policy: _,
             winner_vote_account,
         } = account_infos;
 
@@ -32,6 +33,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for CommitAuctionSettlementV2InstructionAcco
         if !bundle_escrow.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::InvalidAccountOwner);
         }
+
+        super::validate_config_policy_owner(account_infos.config_policy)?;
 
         if !winner_vote_account.is_owned_by(&VOTE_ID) {
             return Err(ProgramError::InvalidAccountOwner);

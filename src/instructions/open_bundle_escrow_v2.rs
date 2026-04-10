@@ -18,6 +18,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for OpenBundleEscrowV2InstructionAccounts<'a
             return Err(ProgramError::MissingRequiredSignature);
         }
 
+        super::validate_config_policy_owner(account_infos.config_policy)?;
+
         Ok(Self(account_infos))
     }
 }
