@@ -20,10 +20,6 @@ impl<'a> TryFrom<&'a [AccountInfo]> for InitConfigPolicyV2InstructionAccounts<'a
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-        if !account_infos.config.is_owned_by(&ambient_auction_api::ID) {
-            return Err(ProgramError::InvalidAccountOwner);
-        }
-
         Ok(Self(account_infos))
     }
 }
