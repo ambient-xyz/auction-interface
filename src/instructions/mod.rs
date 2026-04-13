@@ -10,11 +10,13 @@ mod expire_bundle_escrow_v2;
 mod finalize_bundle_verification_v2;
 mod init_bundle;
 mod init_config;
+mod init_config_policy_v2;
 mod open_bundle_escrow_v2;
 mod place_bid;
 mod post_bundle_result_v2;
 mod request_job;
 mod reveal_bid;
+mod set_config_policy_v2;
 mod submit_job;
 mod submit_validation;
 
@@ -29,13 +31,14 @@ pub use end_auction::*;
 pub use expire_bundle_escrow_v2::*;
 pub use finalize_bundle_verification_v2::*;
 pub use init_bundle::*;
-#[cfg(feature = "global-config")]
 pub use init_config::*;
+pub use init_config_policy_v2::*;
 pub use open_bundle_escrow_v2::*;
 pub use place_bid::*;
 pub use post_bundle_result_v2::*;
 pub use request_job::*;
 pub use reveal_bid::*;
+pub use set_config_policy_v2::*;
 pub use submit_job::*;
 pub use submit_validation::*;
 
@@ -63,4 +66,12 @@ pub trait AuctionInstructionAccounts<'a>: TryFrom<&'a [AccountInfo]> {
 
 fn to_program_error(e: AuctionError) -> ProgramError {
     ProgramError::Custom(e.code())
+}
+
+fn validate_config_policy_owner(config_policy: &AccountInfo) -> Result<(), ProgramError> {
+    if !config_policy.is_owned_by(&ambient_auction_api::ID) {
+        return Err(to_program_error(AuctionError::IllegalConfigPolicyV2Owner));
+    }
+
+    Ok(())
 }

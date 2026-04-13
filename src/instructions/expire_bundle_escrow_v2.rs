@@ -20,6 +20,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ExpireBundleEscrowV2InstructionAccounts<
             return Err(ProgramError::InvalidAccountOwner);
         }
 
+        super::validate_config_policy_owner(account_infos.config_policy)?;
+
         Ok(Self(account_infos))
     }
 }

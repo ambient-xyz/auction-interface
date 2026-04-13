@@ -27,6 +27,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for PostBundleResultV2InstructionAccounts<'a
             return Err(ProgramError::InvalidAccountOwner);
         }
 
+        super::validate_config_policy_owner(account_infos.config_policy)?;
+
         if let Some(bundle_verifier_page) = account_infos.bundle_verifier_page {
             if !bundle_verifier_page.is_owned_by(&ambient_auction_api::ID) {
                 return Err(ProgramError::InvalidAccountOwner);

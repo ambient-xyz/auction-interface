@@ -22,6 +22,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimWinnerLstakeV2InstructionAccounts<'
             winner_vote_account,
             vote_program,
             vote_authority,
+            config_policy: _,
         } = account_infos;
 
         if !bundle_escrow.is_owned_by(&ambient_auction_api::ID) {
@@ -39,6 +40,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimWinnerLstakeV2InstructionAccounts<'
         if !vote_authority.is_signer() {
             return Err(ProgramError::MissingRequiredSignature);
         }
+
+        super::validate_config_policy_owner(account_infos.config_policy)?;
 
         Ok(Self(account_infos))
     }
