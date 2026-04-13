@@ -1,5 +1,7 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
-use ambient_auction_api::{InstructionAccounts, PostBundleResultV2Accounts, PostBundleResultV2Args};
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
+use ambient_auction_api::{
+    InstructionAccounts, PostBundleResultV2Accounts, PostBundleResultV2Args,
+};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
 use pinocchio::program_error::ProgramError;
@@ -18,7 +20,10 @@ impl<'a> TryFrom<&'a [AccountInfo]> for PostBundleResultV2InstructionAccounts<'a
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-        if !account_infos.bundle_escrow.is_owned_by(&ambient_auction_api::ID) {
+        if !account_infos
+            .bundle_escrow
+            .is_owned_by(&ambient_auction_api::ID)
+        {
             return Err(ProgramError::InvalidAccountOwner);
         }
 

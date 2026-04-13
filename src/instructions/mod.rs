@@ -8,6 +8,7 @@ mod commit_auction_settlement_v2;
 mod end_auction;
 mod expire_bundle_escrow_v2;
 mod finalize_bundle_verification_v2;
+mod init_auction_verifiers;
 mod init_bundle;
 mod init_config;
 mod open_bundle_escrow_v2;
@@ -17,6 +18,7 @@ mod request_job;
 mod reveal_bid;
 mod submit_job;
 mod submit_validation;
+mod update_verifier;
 
 pub use append_data::*;
 pub use cancel_bundle::*;
@@ -28,6 +30,7 @@ pub use commit_auction_settlement_v2::*;
 pub use end_auction::*;
 pub use expire_bundle_escrow_v2::*;
 pub use finalize_bundle_verification_v2::*;
+pub use init_auction_verifiers::*;
 pub use init_bundle::*;
 #[cfg(feature = "global-config")]
 pub use init_config::*;
@@ -38,6 +41,7 @@ pub use request_job::*;
 pub use reveal_bid::*;
 pub use submit_job::*;
 pub use submit_validation::*;
+pub use update_verifier::*;
 
 use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{InstructionAccounts, InstructionData};

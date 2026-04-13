@@ -1,4 +1,4 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{CancelBundleAccounts, CancelBundleArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;

@@ -1,5 +1,5 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use crate::INSTRUCTIONS_SYSVAR_ID;
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
     FinalizeBundleVerificationV2Accounts, FinalizeBundleVerificationV2Args, InstructionAccounts,
 };

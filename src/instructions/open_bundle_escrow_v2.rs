@@ -1,5 +1,7 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
-use ambient_auction_api::{InstructionAccounts, OpenBundleEscrowV2Accounts, OpenBundleEscrowV2Args};
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
+use ambient_auction_api::{
+    InstructionAccounts, OpenBundleEscrowV2Accounts, OpenBundleEscrowV2Args,
+};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
 use pinocchio::program_error::ProgramError;
