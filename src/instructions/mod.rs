@@ -8,6 +8,7 @@ mod commit_auction_settlement_v2;
 mod end_auction;
 mod expire_bundle_escrow_v2;
 mod finalize_bundle_verification_v2;
+mod init_bundle_verifier_page_v2;
 mod init_bundle;
 #[cfg(feature = "global-config")]
 mod init_config;
@@ -31,6 +32,7 @@ pub use commit_auction_settlement_v2::*;
 pub use end_auction::*;
 pub use expire_bundle_escrow_v2::*;
 pub use finalize_bundle_verification_v2::*;
+pub use init_bundle_verifier_page_v2::*;
 pub use init_bundle::*;
 #[cfg(feature = "global-config")]
 pub use init_config::*;
