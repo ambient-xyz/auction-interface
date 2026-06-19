@@ -1,5 +1,7 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
-use ambient_auction_api::{ExpireBundleEscrowV2Accounts, ExpireBundleEscrowV2Args, InstructionAccounts};
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
+use ambient_auction_api::{
+    ExpireBundleEscrowV2Accounts, ExpireBundleEscrowV2Args, InstructionAccounts,
+};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
 use pinocchio::program_error::ProgramError;
@@ -16,7 +18,10 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ExpireBundleEscrowV2InstructionAccounts<
         let account_infos =
             ExpireBundleEscrowV2Accounts::try_from(accounts).map_err(to_program_error)?;
 
-        if !account_infos.bundle_escrow.is_owned_by(&ambient_auction_api::ID) {
+        if !account_infos
+            .bundle_escrow
+            .is_owned_by(&ambient_auction_api::ID)
+        {
             return Err(ProgramError::InvalidAccountOwner);
         }
 
