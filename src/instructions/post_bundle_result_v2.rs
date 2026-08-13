@@ -1,7 +1,7 @@
 use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
     InstructionAccounts, InstructionData, PostBundleResultV2Accounts, PostBundleResultV2Args,
-    PostSmallBundleResultV2Args,
+    PostBundleResultV3Args,
 };
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -58,8 +58,8 @@ pub struct PostBundleResultV2Instruction<'a, D = PostBundleResultV2Args> {
     pub data: D,
 }
 
-pub type PostSmallBundleResultV2Instruction<'a> =
-    PostBundleResultV2Instruction<'a, PostSmallBundleResultV2Args>;
+pub type PostBundleResultV3Instruction<'a> =
+    PostBundleResultV2Instruction<'a, PostBundleResultV3Args>;
 
 impl<'a, D: InstructionData<'a>> TryFrom<(&'a [AccountInfo], &'a [u8])>
     for PostBundleResultV2Instruction<'a, D>
