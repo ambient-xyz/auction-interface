@@ -1,6 +1,7 @@
 use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
-    InstructionAccounts, PostBundleResultV2Accounts, PostBundleResultV2Args,
+    InstructionAccounts, InstructionData, PostBundleResultV2Accounts, PostBundleResultV2Args,
+    PostBundleResultV3Args,
 };
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -29,10 +30,11 @@ impl<'a> TryFrom<&'a [AccountInfo]> for PostBundleResultV2InstructionAccounts<'a
 
         super::validate_config_policy_owner(account_infos.config_policy)?;
 
-        if let Some(bundle_verifier_page) = account_infos.bundle_verifier_page {
-            if !bundle_verifier_page.is_owned_by(&ambient_auction_api::ID) {
-                return Err(ProgramError::InvalidAccountOwner);
-            }
+        if account_infos
+            .bundle_verifier_page
+            .is_some_and(|page| !page.is_owned_by(&ambient_auction_api::ID))
+        {
+            return Err(ProgramError::InvalidAccountOwner);
         }
 
         Ok(Self(account_infos))
@@ -51,12 +53,17 @@ impl<'a> AuctionInstructionAccounts<'a> for PostBundleResultV2InstructionAccount
     }
 }
 
-pub struct PostBundleResultV2Instruction<'a> {
+pub struct PostBundleResultV2Instruction<'a, D = PostBundleResultV2Args> {
     pub accounts: PostBundleResultV2InstructionAccounts<'a>,
-    pub data: PostBundleResultV2Args,
+    pub data: D,
 }
 
-impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for PostBundleResultV2Instruction<'a> {
+pub type PostBundleResultV3Instruction<'a> =
+    PostBundleResultV2Instruction<'a, PostBundleResultV3Args>;
+
+impl<'a, D: InstructionData<'a>> TryFrom<(&'a [AccountInfo], &'a [u8])>
+    for PostBundleResultV2Instruction<'a, D>
+{
     type Error = ProgramError;
 
     fn try_from(value: (&'a [AccountInfo], &'a [u8])) -> Result<Self, Self::Error> {
@@ -64,8 +71,7 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for PostBundleResultV2Instructio
 
         Ok(Self {
             accounts: PostBundleResultV2InstructionAccounts::try_from(accounts)?,
-            data: PostBundleResultV2Args::try_from(data)
-                .map_err(|_| ProgramError::InvalidInstructionData)?,
+            data: D::try_from(data).map_err(|_| ProgramError::InvalidInstructionData)?,
         })
     }
 }
