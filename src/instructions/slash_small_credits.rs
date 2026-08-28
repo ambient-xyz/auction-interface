@@ -22,7 +22,10 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SlashSmallCreditsInstructionAccounts<'a>
 
         validate_config_policy_owner(account_infos.config_policy)?;
 
-        if !account_infos.mint.is_writable() || !account_infos.token_account.is_writable() {
+        if !account_infos.config_policy.is_writable()
+            || !account_infos.mint.is_writable()
+            || !account_infos.token_account.is_writable()
+        {
             return Err(ProgramError::InvalidArgument);
         }
 
