@@ -52,7 +52,13 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for AppendDataInstruction<'a> {
     fn try_from(value: (&'a [AccountInfo], &'a [u8])) -> Result<Self, Self::Error> {
         let (accounts, data) = value;
 
-        let (header, write_data) = data.split_at(std::mem::size_of::<AppendDataArgs>());
+        // `slice::split_at` panics when the slice is shorter than the split point, and `data` is fully
+        // attacker-controlled instruction data: any transaction carrying fewer than
+        // `size_of::<AppendDataArgs>()` bytes aborted the program instead of being rejected. Use the
+        // checked form so a truncated payload becomes a normal `InvalidInstructionData` error.
+        let (header, write_data) = data
+            .split_at_checked(core::mem::size_of::<AppendDataArgs>())
+            .ok_or(ProgramError::InvalidInstructionData)?;
 
         Ok(Self {
             accounts: self::AppendDataInstructionAccounts::try_from(accounts)?,

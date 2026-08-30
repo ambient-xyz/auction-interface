@@ -42,7 +42,21 @@ impl<'a> TryFrom<&'a [AccountInfo]> for CloseRequestInstructionAccounts<'a> {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
-        if auction.is_owned_by(&ambient_auction_api::ID) {
+        // The polarity of this check was inverted: it rejected an auction that *is* owned by the
+        // auction program and accepted one that is not. That is the exact opposite of the intent and
+        // of the idiom used by every other account here and in every sibling instruction
+        // (`if !x.is_owned_by(&ID) { return Err(..) }`), and the chosen error — `IncorrectAuction` —
+        // only makes sense as "this account is not one of our auctions".
+        //
+        // Consequences of the old form: a legitimate, program-owned auction could never be passed, so
+        // the guard could only ever be satisfied by an account this program does not own — including
+        // an account fabricated by an attacker under a program they control. Any state the handler
+        // subsequently reads from `auction` would then be attacker-chosen.
+        //
+        // The client always supplies an existing auction here: `close_request` in
+        // `auction-client/src/sdk/instructions.rs` derives it with `find_auction(bundle_key)` and marks
+        // it writable, so requiring program ownership does not reject any call the SDK can build.
+        if !auction.is_owned_by(&ambient_auction_api::ID) {
             return Err(ProgramError::Custom(AuctionError::IncorrectAuction.code()));
         }
 
