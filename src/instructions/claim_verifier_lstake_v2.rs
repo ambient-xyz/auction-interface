@@ -51,6 +51,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimVerifierLstakeV2InstructionAccounts
             }
         }
 
+        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
+
         Ok(Self(account_infos))
     }
 }

@@ -35,6 +35,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for PostBundleResultV2InstructionAccounts<'a
             }
         }
 
+        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
+
         Ok(Self(account_infos))
     }
 }
