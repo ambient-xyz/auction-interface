@@ -1,4 +1,5 @@
 mod append_data;
+mod authorize_bundle_dispute_evidence_v5;
 mod cancel_bundle;
 mod claim_verifier_lstake_v2;
 mod claim_winner_lstake_v2;
@@ -26,6 +27,7 @@ mod submit_job;
 mod submit_validation;
 
 pub use append_data::*;
+pub use authorize_bundle_dispute_evidence_v5::*;
 pub use cancel_bundle::*;
 pub use claim_verifier_lstake_v2::*;
 pub use claim_winner_lstake_v2::*;
