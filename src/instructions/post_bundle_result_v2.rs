@@ -30,10 +30,21 @@ impl<'a> TryFrom<&'a [AccountInfo]> for PostBundleResultV2InstructionAccounts<'a
         super::validate_config_policy_owner(account_infos.config_policy)?;
 
         if let Some(bundle_verifier_page) = account_infos.bundle_verifier_page {
+            if !bundle_verifier_page.is_writable() {
+                return Err(ProgramError::InvalidArgument);
+            }
             if !bundle_verifier_page.is_owned_by(&ambient_auction_api::ID) {
                 return Err(ProgramError::InvalidAccountOwner);
             }
         }
+
+        if let Some(dispute) = account_infos.bundle_verification_dispute {
+            if !dispute.is_owned_by(&ambient_auction_api::ID) {
+                return Err(ProgramError::InvalidAccountOwner);
+            }
+        }
+
+        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
 
         Ok(Self(account_infos))
     }
