@@ -21,7 +21,6 @@ impl<'a> TryFrom<&'a [AccountInfo]> for RequestJobInstructionAccounts<'a> {
             registry,
             input_data: _,
             system_program: _,
-            #[cfg(feature = "global-config")]
             config,
             bundle_auction_account_pairs: _,
             last_bundle: _,
@@ -31,7 +30,6 @@ impl<'a> TryFrom<&'a [AccountInfo]> for RequestJobInstructionAccounts<'a> {
             return Err(ProgramError::Custom(AuctionError::InvalidRegistry.code()));
         }
 
-        #[cfg(feature = "global-config")]
         if !config.is_owned_by(&ambient_auction_api::ID) {
             return Err(to_program_error(AuctionError::IllegalConfigOwner));
         }
