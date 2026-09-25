@@ -1,5 +1,5 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use crate::VOTE_ID;
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{EndAuctionAccounts, EndAuctionArgs, InstructionAccounts};
 use pinocchio::account_info::AccountInfo;

@@ -1,4 +1,4 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::error::AuctionError;
 use ambient_auction_api::{InstructionAccounts, SubmitJobOutputAccounts, SubmitJobOutputArgs};
 use pinocchio::account_info::AccountInfo;
