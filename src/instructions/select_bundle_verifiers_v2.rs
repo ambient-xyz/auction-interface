@@ -29,6 +29,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SelectBundleVerifiersV2InstructionAccoun
             return Err(ProgramError::InvalidAccountOwner);
         }
 
+        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
+
         for (account, expected_key) in [
             (
                 account_infos.auction_verifiers,
@@ -52,8 +54,6 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SelectBundleVerifiersV2InstructionAccoun
                 return Err(ProgramError::InvalidAccountOwner);
             }
         }
-
-        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
 
         Ok(Self(account_infos))
     }
