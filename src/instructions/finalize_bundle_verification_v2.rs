@@ -41,6 +41,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for FinalizeBundleVerificationV2InstructionA
 
         super::validate_config_policy_owner(account_infos.config_policy)?;
 
+        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
+
         Ok(Self(account_infos))
     }
 }

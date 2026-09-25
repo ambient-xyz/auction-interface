@@ -1,5 +1,5 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use crate::VOTE_ID;
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
     CommitAuctionSettlementV2Accounts, CommitAuctionSettlementV2Args, InstructionAccounts,
 };
@@ -39,6 +39,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for CommitAuctionSettlementV2InstructionAcco
         if !winner_vote_account.is_owned_by(&VOTE_ID) {
             return Err(ProgramError::InvalidAccountOwner);
         }
+
+        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
 
         Ok(Self(account_infos))
     }

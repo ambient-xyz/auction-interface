@@ -1,17 +1,18 @@
 mod append_data;
+mod authorize_bundle_dispute_evidence_v5;
 mod cancel_bundle;
 mod claim_verifier_lstake_v2;
 mod claim_winner_lstake_v2;
 mod close_bid;
+mod close_bundle_verifier_page_v5;
 mod close_request;
 mod commit_auction_settlement_v2;
 mod dispute_bundle_verification_v2;
 mod end_auction;
 mod expire_bundle_escrow_v2;
 mod finalize_bundle_verification_v2;
-mod init_bundle_verifier_page_v2;
 mod init_bundle;
-#[cfg(feature = "global-config")]
+mod init_bundle_verifier_page_v2;
 mod init_config;
 mod init_config_policy_v2;
 mod open_bundle_escrow_v2;
@@ -25,19 +26,20 @@ mod submit_job;
 mod submit_validation;
 
 pub use append_data::*;
+pub use authorize_bundle_dispute_evidence_v5::*;
 pub use cancel_bundle::*;
 pub use claim_verifier_lstake_v2::*;
 pub use claim_winner_lstake_v2::*;
 pub use close_bid::*;
+pub use close_bundle_verifier_page_v5::*;
 pub use close_request::*;
 pub use commit_auction_settlement_v2::*;
 pub use dispute_bundle_verification_v2::*;
 pub use end_auction::*;
 pub use expire_bundle_escrow_v2::*;
 pub use finalize_bundle_verification_v2::*;
-pub use init_bundle_verifier_page_v2::*;
 pub use init_bundle::*;
-#[cfg(feature = "global-config")]
+pub use init_bundle_verifier_page_v2::*;
 pub use init_config::*;
 pub use init_config_policy_v2::*;
 pub use open_bundle_escrow_v2::*;
@@ -81,5 +83,24 @@ fn validate_config_policy_owner(config_policy: &AccountInfo) -> Result<(), Progr
         return Err(to_program_error(AuctionError::IllegalConfigPolicyV2Owner));
     }
 
+    Ok(())
+}
+
+fn validate_current_bundle_escrow(account: &AccountInfo) -> Result<(), ProgramError> {
+    if !account.is_owned_by(&ambient_auction_api::ID) {
+        return Err(ProgramError::InvalidAccountOwner);
+    }
+    if !account.is_writable() {
+        return Err(ProgramError::InvalidArgument);
+    }
+    let data = account.try_borrow_data()?;
+    let state = ambient_auction_api::BundleEscrowV2::from_bytes(&data)
+        .ok_or_else(|| to_program_error(AuctionError::InvalidBundleEscrowV2State))?;
+    let pages = state
+        .v5()
+        .ok_or_else(|| to_program_error(AuctionError::InvalidAccountLayoutVersion))?;
+    if !(1..=ambient_auction_api::MAX_BUNDLE_VERIFIER_PAGES).contains(&pages.expected_page_count) {
+        return Err(to_program_error(AuctionError::InvalidVerifierPageV2Input));
+    }
     Ok(())
 }

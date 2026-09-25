@@ -43,6 +43,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for DisputeBundleVerificationV2InstructionAc
             return Err(ProgramError::IncorrectProgramId);
         }
 
+        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
+
         Ok(Self(account_infos))
     }
 }

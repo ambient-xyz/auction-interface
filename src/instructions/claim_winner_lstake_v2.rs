@@ -1,5 +1,5 @@
-use crate::instructions::{to_program_error, AuctionInstructionAccounts};
 use crate::VOTE_ID;
+use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
     ClaimWinnerLstakeV2Accounts, ClaimWinnerLstakeV2Args, InstructionAccounts,
 };
@@ -42,6 +42,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimWinnerLstakeV2InstructionAccounts<'
         }
 
         super::validate_config_policy_owner(account_infos.config_policy)?;
+
+        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
 
         Ok(Self(account_infos))
     }

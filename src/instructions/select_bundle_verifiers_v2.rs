@@ -32,7 +32,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SelectBundleVerifiersV2InstructionAccoun
         for (account, expected_key) in [
             (
                 account_infos.auction_verifiers,
-                &ambient_auction_api::AUCTION_VERIFIERS_SYSVAR_ID,
+                &ambient_auction_api::AUCTION_VERIFIERS_HISTORY_ID,
             ),
             (account_infos.slot_hashes, &SLOT_HASHES_SYSVAR_ID),
         ] {
@@ -52,6 +52,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SelectBundleVerifiersV2InstructionAccoun
                 return Err(ProgramError::InvalidAccountOwner);
             }
         }
+
+        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
 
         Ok(Self(account_infos))
     }
