@@ -103,17 +103,22 @@ fn validate_current_bundle_escrow(account: &AccountInfo) -> Result<(), ProgramEr
     let pages = state
         .v5()
         .ok_or_else(|| to_program_error(AuctionError::InvalidAccountLayoutVersion))?;
+    let small = state.reward_tier == ambient_auction_api::RequestTier::Small as u64;
+    if (small && pages.small_credit_mint == ambient_auction_api::Pubkey::default())
+        || (!small && (pages.small_credit_mint != ambient_auction_api::Pubkey::default() || pages.small_credit_amount != 0)) {
+        return Err(to_program_error(AuctionError::InvalidBundleEscrowV2State));
+    }
     if !(1..=ambient_auction_api::MAX_BUNDLE_VERIFIER_PAGES).contains(&pages.expected_page_count) {
         return Err(to_program_error(AuctionError::InvalidVerifierPageV2Input));
     }
     Ok(())
 }
 
-fn validate_settlement_bundle_escrow(account: &AccountInfo) -> Result<(), ProgramError> {
+fn validate_settlement_bundle_escrow(account: &AccountInfo, writable: bool) -> Result<(), ProgramError> {
     if !account.is_owned_by(&ambient_auction_api::ID) {
         return Err(ProgramError::InvalidAccountOwner);
     }
-    if !account.is_writable() {
+    if writable && !account.is_writable() {
         return Err(ProgramError::InvalidArgument);
     }
     let data = account.try_borrow_data()?;

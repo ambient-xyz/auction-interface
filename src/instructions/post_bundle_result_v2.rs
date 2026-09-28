@@ -44,7 +44,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for PostBundleResultV2InstructionAccounts<'a
             }
         }
 
-        super::validate_settlement_bundle_escrow(account_infos.bundle_escrow)?;
+        super::validate_settlement_bundle_escrow(account_infos.bundle_escrow, true)?;
 
         Ok(Self(account_infos))
     }
