@@ -40,7 +40,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for CommitAuctionSettlementV2InstructionAcco
             return Err(ProgramError::InvalidAccountOwner);
         }
 
-        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
+        super::validate_settlement_bundle_escrow(account_infos.bundle_escrow)?;
 
         Ok(Self(account_infos))
     }
