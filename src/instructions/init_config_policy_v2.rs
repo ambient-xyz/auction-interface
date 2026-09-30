@@ -1,6 +1,7 @@
 use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
-    InitConfigPolicyV2Accounts, InitConfigPolicyV2Args, InitConfigPolicySmallV3Args, InstructionAccounts,
+    InitConfigPolicyV2Accounts, InitConfigPolicyV2Args, InitConfigPolicySmallV3Args,
+    InstructionAccounts,
 };
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;

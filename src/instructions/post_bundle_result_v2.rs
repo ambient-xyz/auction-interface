@@ -78,15 +78,23 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for PostBundleResultV2Instructio
         let escrow_data = accounts.inner().bundle_escrow.try_borrow_data()?;
         let escrow = ambient_auction_api::BundleEscrowV2::from_bytes(&escrow_data)
             .ok_or(ProgramError::InvalidAccountData)?;
-        let (data, input_tokens) = if escrow.reward_tier == ambient_auction_api::RequestTier::Small as u64 {
-            let args = PostBundleResultV3Args::try_from(data)
-                .map_err(|_| ProgramError::InvalidInstructionData)?;
-            (args.post, Some(args.input_tokens))
-        } else {
-            (PostBundleResultV2Args::try_from(data)
-                .map_err(|_| ProgramError::InvalidInstructionData)?, None)
-        };
+        let (data, input_tokens) =
+            if escrow.reward_tier == ambient_auction_api::RequestTier::Small as u64 {
+                let args = PostBundleResultV3Args::try_from(data)
+                    .map_err(|_| ProgramError::InvalidInstructionData)?;
+                (args.post, Some(args.input_tokens))
+            } else {
+                (
+                    PostBundleResultV2Args::try_from(data)
+                        .map_err(|_| ProgramError::InvalidInstructionData)?,
+                    None,
+                )
+            };
         drop(escrow_data);
-        Ok(Self { accounts, data, input_tokens })
+        Ok(Self {
+            accounts,
+            data,
+            input_tokens,
+        })
     }
 }

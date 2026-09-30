@@ -105,7 +105,10 @@ fn validate_current_bundle_escrow(account: &AccountInfo) -> Result<(), ProgramEr
         .ok_or_else(|| to_program_error(AuctionError::InvalidAccountLayoutVersion))?;
     let small = state.reward_tier == ambient_auction_api::RequestTier::Small as u64;
     if (small && pages.small_credit_mint == ambient_auction_api::Pubkey::default())
-        || (!small && (pages.small_credit_mint != ambient_auction_api::Pubkey::default() || pages.small_credit_amount != 0)) {
+        || (!small
+            && (pages.small_credit_mint != ambient_auction_api::Pubkey::default()
+                || pages.small_credit_amount != 0))
+    {
         return Err(to_program_error(AuctionError::InvalidBundleEscrowV2State));
     }
     if !(1..=ambient_auction_api::MAX_BUNDLE_VERIFIER_PAGES).contains(&pages.expected_page_count) {
@@ -114,7 +117,10 @@ fn validate_current_bundle_escrow(account: &AccountInfo) -> Result<(), ProgramEr
     Ok(())
 }
 
-fn validate_settlement_bundle_escrow(account: &AccountInfo, writable: bool) -> Result<(), ProgramError> {
+fn validate_settlement_bundle_escrow(
+    account: &AccountInfo,
+    writable: bool,
+) -> Result<(), ProgramError> {
     if !account.is_owned_by(&ambient_auction_api::ID) {
         return Err(ProgramError::InvalidAccountOwner);
     }
@@ -126,7 +132,9 @@ fn validate_settlement_bundle_escrow(account: &AccountInfo, writable: bool) -> R
         .ok_or_else(|| to_program_error(AuctionError::InvalidBundleEscrowV2State))?;
     if state.layout().version == ambient_auction_api::AccountLayoutVersion::V3 {
         if state.reward_tier != ambient_auction_api::RequestTier::Small as u64
-            || state.small_v3().is_none_or(|small| small.mint == ambient_auction_api::Pubkey::default())
+            || state
+                .small_v3()
+                .is_none_or(|small| small.mint == ambient_auction_api::Pubkey::default())
             || state.escrow_lamports != 0
             || state.clearing_price_per_output_token != 0
         {
