@@ -1,10 +1,9 @@
 mod append_data;
 mod authorize_bundle_dispute_evidence_v5;
 mod cancel_bundle;
+mod claim_small_credits_v5;
 mod claim_verifier_lstake_v2;
 mod claim_winner_lstake_v2;
-mod claim_small_credits_v5;
-mod slash_small_credits;
 mod close_bid;
 mod close_bundle_verifier_page_v5;
 mod close_request;
@@ -24,16 +23,16 @@ mod request_job;
 mod reveal_bid;
 mod select_bundle_verifiers_v2;
 mod set_config_policy_v2;
+mod slash_small_credits;
 mod submit_job;
 mod submit_validation;
 
 pub use append_data::*;
 pub use authorize_bundle_dispute_evidence_v5::*;
 pub use cancel_bundle::*;
+pub use claim_small_credits_v5::*;
 pub use claim_verifier_lstake_v2::*;
 pub use claim_winner_lstake_v2::*;
-pub use claim_small_credits_v5::*;
-pub use slash_small_credits::*;
 pub use close_bid::*;
 pub use close_bundle_verifier_page_v5::*;
 pub use close_request::*;
@@ -53,6 +52,7 @@ pub use request_job::*;
 pub use reveal_bid::*;
 pub use select_bundle_verifiers_v2::*;
 pub use set_config_policy_v2::*;
+pub use slash_small_credits::*;
 pub use submit_job::*;
 pub use submit_validation::*;
 

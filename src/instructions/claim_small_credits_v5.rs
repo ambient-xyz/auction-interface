@@ -1,5 +1,7 @@
 use crate::instructions::{AuctionInstructionAccounts, to_program_error};
-use ambient_auction_api::{ClaimSmallCreditsV5Accounts, ClaimSmallCreditsV5Args, InstructionAccounts};
+use ambient_auction_api::{
+    ClaimSmallCreditsV5Accounts, ClaimSmallCreditsV5Args, InstructionAccounts,
+};
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
 use pinocchio::program_error::ProgramError;
