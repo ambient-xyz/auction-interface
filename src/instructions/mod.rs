@@ -1,6 +1,7 @@
 mod append_data;
 mod authorize_bundle_dispute_evidence_v5;
 mod cancel_bundle;
+mod claim_small_credits_v5;
 mod claim_verifier_lstake_v2;
 mod claim_winner_lstake_v2;
 mod close_bid;
@@ -22,12 +23,14 @@ mod request_job;
 mod reveal_bid;
 mod select_bundle_verifiers_v2;
 mod set_config_policy_v2;
+mod slash_small_credits;
 mod submit_job;
 mod submit_validation;
 
 pub use append_data::*;
 pub use authorize_bundle_dispute_evidence_v5::*;
 pub use cancel_bundle::*;
+pub use claim_small_credits_v5::*;
 pub use claim_verifier_lstake_v2::*;
 pub use claim_winner_lstake_v2::*;
 pub use close_bid::*;
@@ -49,6 +52,7 @@ pub use request_job::*;
 pub use reveal_bid::*;
 pub use select_bundle_verifiers_v2::*;
 pub use set_config_policy_v2::*;
+pub use slash_small_credits::*;
 pub use submit_job::*;
 pub use submit_validation::*;
 
@@ -99,8 +103,45 @@ fn validate_current_bundle_escrow(account: &AccountInfo) -> Result<(), ProgramEr
     let pages = state
         .v5()
         .ok_or_else(|| to_program_error(AuctionError::InvalidAccountLayoutVersion))?;
+    let small = state.reward_tier == ambient_auction_api::RequestTier::Small as u64;
+    if (small && pages.small_credit_mint == ambient_auction_api::Pubkey::default())
+        || (!small
+            && (pages.small_credit_mint != ambient_auction_api::Pubkey::default()
+                || pages.small_credit_amount != 0))
+    {
+        return Err(to_program_error(AuctionError::InvalidBundleEscrowV2State));
+    }
     if !(1..=ambient_auction_api::MAX_BUNDLE_VERIFIER_PAGES).contains(&pages.expected_page_count) {
         return Err(to_program_error(AuctionError::InvalidVerifierPageV2Input));
     }
     Ok(())
+}
+
+fn validate_settlement_bundle_escrow(
+    account: &AccountInfo,
+    writable: bool,
+) -> Result<(), ProgramError> {
+    if !account.is_owned_by(&ambient_auction_api::ID) {
+        return Err(ProgramError::InvalidAccountOwner);
+    }
+    if writable && !account.is_writable() {
+        return Err(ProgramError::InvalidArgument);
+    }
+    let data = account.try_borrow_data()?;
+    let state = ambient_auction_api::BundleEscrowV2::from_bytes(&data)
+        .ok_or_else(|| to_program_error(AuctionError::InvalidBundleEscrowV2State))?;
+    if state.layout().version == ambient_auction_api::AccountLayoutVersion::V3 {
+        if state.reward_tier != ambient_auction_api::RequestTier::Small as u64
+            || state
+                .small_v3()
+                .is_none_or(|small| small.mint == ambient_auction_api::Pubkey::default())
+            || state.escrow_lamports != 0
+            || state.clearing_price_per_output_token != 0
+        {
+            return Err(to_program_error(AuctionError::InvalidBundleEscrowV2State));
+        }
+        return Ok(());
+    }
+    drop(data);
+    validate_current_bundle_escrow(account)
 }
