@@ -75,3 +75,22 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for OpenBundleEscrowV5Instructio
         })
     }
 }
+
+pub struct OpenBundleEscrowV6Instruction<'a> {
+    pub accounts: OpenBundleEscrowV2InstructionAccounts<'a>,
+    pub data: ambient_auction_api::OpenBundleEscrowV6Args,
+}
+
+impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for OpenBundleEscrowV6Instruction<'a> {
+    type Error = ProgramError;
+
+    fn try_from(value: (&'a [AccountInfo], &'a [u8])) -> Result<Self, Self::Error> {
+        let (accounts, data) = value;
+
+        Ok(Self {
+            accounts: OpenBundleEscrowV2InstructionAccounts::try_from(accounts)?,
+            data: ambient_auction_api::OpenBundleEscrowV6Args::try_from(data)
+                .map_err(|_| ProgramError::InvalidInstructionData)?,
+        })
+    }
+}
