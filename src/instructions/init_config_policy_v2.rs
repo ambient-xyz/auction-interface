@@ -1,6 +1,7 @@
 use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
-    InitConfigPolicyV2Accounts, InitConfigPolicyV2Args, InstructionAccounts,
+    InitConfigPolicySmallV3Args, InitConfigPolicyV2Accounts, InitConfigPolicyV2Args,
+    InstructionAccounts,
 };
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -49,8 +50,29 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for InitConfigPolicyV2Instructio
 
         Ok(Self {
             accounts: InitConfigPolicyV2InstructionAccounts::try_from(accounts)?,
-            data: InitConfigPolicyV2Args::try_from(data)
-                .map_err(|_| ProgramError::InvalidInstructionData)?,
+            data: if data.len() == std::mem::size_of::<InitConfigPolicySmallV3Args>() {
+                let args = InitConfigPolicySmallV3Args::try_from(data)
+                    .map_err(|_| ProgramError::InvalidInstructionData)?;
+                InitConfigPolicyV2Args {
+                    config_policy_lamports: args.config_policy_lamports,
+                    initial_admin_authority: args.initial_admin_authority,
+                    service_authority: args.service_authority,
+                    policy_flags: args.policy_flags,
+                    minimum_bundle_auction_pairs: args.minimum_bundle_auction_pairs,
+                    max_auction_credits_per_update: args.max_auction_credits_per_update,
+                    v2_verifiers_per_auction: args.v2_verifiers_per_auction,
+                    v2_verifier_quorum: args.v2_verifier_quorum,
+                    _reserved0: args._reserved0,
+                    missed_verification_dispute_window_slots: 0,
+                    dispute_verification_window_slots: 0,
+                    paid_verification_dispute_window_slots: 0,
+                    paid_verification_dispute_bond_lamports: 0,
+                    tier_configs: args.tier_configs,
+                }
+            } else {
+                InitConfigPolicyV2Args::try_from(data)
+                    .map_err(|_| ProgramError::InvalidInstructionData)?
+            },
         })
     }
 }

@@ -1,6 +1,6 @@
 use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
-    InstructionAccounts, PostBundleResultV2Accounts, PostBundleResultV2Args,
+    InstructionAccounts, PostBundleResultV2Accounts, PostBundleResultV2Args, PostBundleResultV3Args,
 };
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -44,7 +44,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for PostBundleResultV2InstructionAccounts<'a
             }
         }
 
-        super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
+        super::validate_settlement_bundle_escrow(account_infos.bundle_escrow, true)?;
 
         Ok(Self(account_infos))
     }
@@ -65,6 +65,7 @@ impl<'a> AuctionInstructionAccounts<'a> for PostBundleResultV2InstructionAccount
 pub struct PostBundleResultV2Instruction<'a> {
     pub accounts: PostBundleResultV2InstructionAccounts<'a>,
     pub data: PostBundleResultV2Args,
+    pub input_tokens: Option<[u64; ambient_auction_api::MAX_BUNDLE_VERIFIER_PAGE_V2_ENTRIES]>,
 }
 
 impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for PostBundleResultV2Instruction<'a> {
@@ -73,10 +74,27 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for PostBundleResultV2Instructio
     fn try_from(value: (&'a [AccountInfo], &'a [u8])) -> Result<Self, Self::Error> {
         let (accounts, data) = value;
 
+        let accounts = PostBundleResultV2InstructionAccounts::try_from(accounts)?;
+        let escrow_data = accounts.inner().bundle_escrow.try_borrow_data()?;
+        let escrow = ambient_auction_api::BundleEscrowV2::from_bytes(&escrow_data)
+            .ok_or(ProgramError::InvalidAccountData)?;
+        let (data, input_tokens) =
+            if escrow.reward_tier == ambient_auction_api::RequestTier::Small as u64 {
+                let args = PostBundleResultV3Args::try_from(data)
+                    .map_err(|_| ProgramError::InvalidInstructionData)?;
+                (args.post, Some(args.input_tokens))
+            } else {
+                (
+                    PostBundleResultV2Args::try_from(data)
+                        .map_err(|_| ProgramError::InvalidInstructionData)?,
+                    None,
+                )
+            };
+        drop(escrow_data);
         Ok(Self {
-            accounts: PostBundleResultV2InstructionAccounts::try_from(accounts)?,
-            data: PostBundleResultV2Args::try_from(data)
-                .map_err(|_| ProgramError::InvalidInstructionData)?,
+            accounts,
+            data,
+            input_tokens,
         })
     }
 }
