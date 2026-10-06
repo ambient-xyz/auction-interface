@@ -1,20 +1,20 @@
 use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
-    ClaimSmallCreditsV5Accounts, ClaimSmallCreditsV5Args, InstructionAccounts,
+    ClaimSmallCreditsV4Accounts, ClaimSmallCreditsV4Args, InstructionAccounts,
 };
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
 use pinocchio::program_error::ProgramError;
 
 #[repr(transparent)]
-pub struct ClaimSmallCreditsV5InstructionAccounts<'a>(ClaimSmallCreditsV5Accounts<'a, AccountInfo>);
+pub struct ClaimSmallCreditsV4InstructionAccounts<'a>(ClaimSmallCreditsV4Accounts<'a, AccountInfo>);
 
-impl<'a> TryFrom<&'a [AccountInfo]> for ClaimSmallCreditsV5InstructionAccounts<'a> {
+impl<'a> TryFrom<&'a [AccountInfo]> for ClaimSmallCreditsV4InstructionAccounts<'a> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
         let account_infos =
-            ClaimSmallCreditsV5Accounts::try_from(accounts).map_err(to_program_error)?;
+            ClaimSmallCreditsV4Accounts::try_from(accounts).map_err(to_program_error)?;
 
         super::validate_config_policy_owner(account_infos.config_policy)?;
         if !account_infos.mint.is_writable() || !account_infos.token_account.is_writable() {
@@ -30,8 +30,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimSmallCreditsV5InstructionAccounts<'
     }
 }
 
-impl<'a> AuctionInstructionAccounts<'a> for ClaimSmallCreditsV5InstructionAccounts<'a> {
-    type Inner = ClaimSmallCreditsV5Accounts<'a, AccountInfo>;
+impl<'a> AuctionInstructionAccounts<'a> for ClaimSmallCreditsV4InstructionAccounts<'a> {
+    type Inner = ClaimSmallCreditsV4Accounts<'a, AccountInfo>;
 
     fn inner(&self) -> &Self::Inner {
         &self.0
@@ -42,20 +42,20 @@ impl<'a> AuctionInstructionAccounts<'a> for ClaimSmallCreditsV5InstructionAccoun
     }
 }
 
-pub struct ClaimSmallCreditsV5Instruction<'a> {
-    pub accounts: ClaimSmallCreditsV5InstructionAccounts<'a>,
-    pub data: ClaimSmallCreditsV5Args,
+pub struct ClaimSmallCreditsV4Instruction<'a> {
+    pub accounts: ClaimSmallCreditsV4InstructionAccounts<'a>,
+    pub data: ClaimSmallCreditsV4Args,
 }
 
-impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for ClaimSmallCreditsV5Instruction<'a> {
+impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for ClaimSmallCreditsV4Instruction<'a> {
     type Error = ProgramError;
 
     fn try_from(value: (&'a [AccountInfo], &'a [u8])) -> Result<Self, Self::Error> {
         let (accounts, data) = value;
 
         Ok(Self {
-            accounts: ClaimSmallCreditsV5InstructionAccounts::try_from(accounts)?,
-            data: ClaimSmallCreditsV5Args::try_from(data)
+            accounts: ClaimSmallCreditsV4InstructionAccounts::try_from(accounts)?,
+            data: ClaimSmallCreditsV4Args::try_from(data)
                 .map_err(|_| ProgramError::InvalidInstructionData)?,
         })
     }
