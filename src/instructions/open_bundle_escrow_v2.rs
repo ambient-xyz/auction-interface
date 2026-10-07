@@ -57,12 +57,12 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for OpenBundleEscrowV2Instructio
     }
 }
 
-pub struct OpenBundleEscrowV5Instruction<'a> {
+pub struct OpenBundleEscrowV4Instruction<'a> {
     pub accounts: OpenBundleEscrowV2InstructionAccounts<'a>,
-    pub data: ambient_auction_api::OpenBundleEscrowV5Args,
+    pub data: ambient_auction_api::OpenBundleEscrowV4Args,
 }
 
-impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for OpenBundleEscrowV5Instruction<'a> {
+impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for OpenBundleEscrowV4Instruction<'a> {
     type Error = ProgramError;
 
     fn try_from(value: (&'a [AccountInfo], &'a [u8])) -> Result<Self, Self::Error> {
@@ -70,7 +70,26 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for OpenBundleEscrowV5Instructio
 
         Ok(Self {
             accounts: OpenBundleEscrowV2InstructionAccounts::try_from(accounts)?,
-            data: ambient_auction_api::OpenBundleEscrowV5Args::try_from(data)
+            data: ambient_auction_api::OpenBundleEscrowV4Args::try_from(data)
+                .map_err(|_| ProgramError::InvalidInstructionData)?,
+        })
+    }
+}
+
+pub struct OpenPricedBundleEscrowV4Instruction<'a> {
+    pub accounts: OpenBundleEscrowV2InstructionAccounts<'a>,
+    pub data: ambient_auction_api::OpenPricedBundleEscrowV4Args,
+}
+
+impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for OpenPricedBundleEscrowV4Instruction<'a> {
+    type Error = ProgramError;
+
+    fn try_from(value: (&'a [AccountInfo], &'a [u8])) -> Result<Self, Self::Error> {
+        let (accounts, data) = value;
+
+        Ok(Self {
+            accounts: OpenBundleEscrowV2InstructionAccounts::try_from(accounts)?,
+            data: ambient_auction_api::OpenPricedBundleEscrowV4Args::try_from(data)
                 .map_err(|_| ProgramError::InvalidInstructionData)?,
         })
     }
