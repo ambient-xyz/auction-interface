@@ -1,19 +1,19 @@
 use super::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
-    AuthorizeBundleDisputeEvidenceV5Accounts, AuthorizeBundleDisputeEvidenceV5Args,
+    AuthorizeBundleDisputeEvidenceV4Accounts, AuthorizeBundleDisputeEvidenceV4Args,
     InstructionAccounts,
 };
 use pinocchio::{account_info::AccountInfo, instruction::AccountMeta, program_error::ProgramError};
 
-pub struct AuthorizeBundleDisputeEvidenceV5InstructionAccounts<'a>(
-    AuthorizeBundleDisputeEvidenceV5Accounts<'a, AccountInfo>,
+pub struct AuthorizeBundleDisputeEvidenceV4InstructionAccounts<'a>(
+    AuthorizeBundleDisputeEvidenceV4Accounts<'a, AccountInfo>,
 );
 
-impl<'a> TryFrom<&'a [AccountInfo]> for AuthorizeBundleDisputeEvidenceV5InstructionAccounts<'a> {
+impl<'a> TryFrom<&'a [AccountInfo]> for AuthorizeBundleDisputeEvidenceV4InstructionAccounts<'a> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'a [AccountInfo]) -> Result<Self, Self::Error> {
-        let accounts = AuthorizeBundleDisputeEvidenceV5Accounts::try_from(accounts)
+        let accounts = AuthorizeBundleDisputeEvidenceV4Accounts::try_from(accounts)
             .map_err(to_program_error)?;
         if !accounts.submitter.is_signer() {
             return Err(ProgramError::MissingRequiredSignature);
@@ -36,9 +36,9 @@ impl<'a> TryFrom<&'a [AccountInfo]> for AuthorizeBundleDisputeEvidenceV5Instruct
 }
 
 impl<'a> AuctionInstructionAccounts<'a>
-    for AuthorizeBundleDisputeEvidenceV5InstructionAccounts<'a>
+    for AuthorizeBundleDisputeEvidenceV4InstructionAccounts<'a>
 {
-    type Inner = AuthorizeBundleDisputeEvidenceV5Accounts<'a, AccountInfo>;
+    type Inner = AuthorizeBundleDisputeEvidenceV4Accounts<'a, AccountInfo>;
     fn inner(&self) -> &Self::Inner {
         &self.0
     }
@@ -47,13 +47,13 @@ impl<'a> AuctionInstructionAccounts<'a>
     }
 }
 
-pub struct AuthorizeBundleDisputeEvidenceV5Instruction<'a> {
-    pub accounts: AuthorizeBundleDisputeEvidenceV5InstructionAccounts<'a>,
-    pub data: AuthorizeBundleDisputeEvidenceV5Args,
+pub struct AuthorizeBundleDisputeEvidenceV4Instruction<'a> {
+    pub accounts: AuthorizeBundleDisputeEvidenceV4InstructionAccounts<'a>,
+    pub data: AuthorizeBundleDisputeEvidenceV4Args,
 }
 
 impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])>
-    for AuthorizeBundleDisputeEvidenceV5Instruction<'a>
+    for AuthorizeBundleDisputeEvidenceV4Instruction<'a>
 {
     type Error = ProgramError;
     fn try_from((accounts, data): (&'a [AccountInfo], &'a [u8])) -> Result<Self, Self::Error> {
