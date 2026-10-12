@@ -7,10 +7,16 @@ use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
 use pinocchio::program_error::ProgramError;
 
-#[repr(transparent)]
 pub struct CommitAuctionSettlementV2InstructionAccounts<'a>(
     CommitAuctionSettlementV2Accounts<'a, AccountInfo>,
+    Option<(&'a AccountInfo, &'a AccountInfo)>,
 );
+
+impl<'a> CommitAuctionSettlementV2InstructionAccounts<'a> {
+    pub fn small_v3_selection_accounts(&self) -> Option<(&'a AccountInfo, &'a AccountInfo)> {
+        self.1
+    }
+}
 
 impl<'a> TryFrom<&'a [AccountInfo]> for CommitAuctionSettlementV2InstructionAccounts<'a> {
     type Error = ProgramError;
@@ -42,7 +48,17 @@ impl<'a> TryFrom<&'a [AccountInfo]> for CommitAuctionSettlementV2InstructionAcco
 
         super::validate_settlement_bundle_escrow(account_infos.bundle_escrow, true)?;
 
-        Ok(Self(account_infos))
+        let selection_accounts = match &accounts[4..] {
+            [] => None,
+            [auction_verifiers, slot_hashes] => {
+                super::validate_verifier_selection_accounts(auction_verifiers, slot_hashes)?;
+                Some((auction_verifiers, slot_hashes))
+            }
+            [_] => return Err(ProgramError::NotEnoughAccountKeys),
+            _ => return Err(ProgramError::InvalidArgument),
+        };
+
+        Ok(Self(account_infos, selection_accounts))
     }
 }
 
@@ -54,7 +70,14 @@ impl<'a> AuctionInstructionAccounts<'a> for CommitAuctionSettlementV2Instruction
     }
 
     fn to_account_metas(&'a self) -> impl Iterator<Item = AccountMeta<'a>> {
-        self.inner().iter().map(AccountMeta::from)
+        self.inner()
+            .iter()
+            .chain(
+                self.1
+                    .into_iter()
+                    .flat_map(|(history, hashes)| [history, hashes]),
+            )
+            .map(AccountMeta::from)
     }
 }
 
