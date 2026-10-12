@@ -150,6 +150,17 @@ fn validate_settlement_bundle_escrow(
     let data = account.try_borrow_data()?;
     let state = ambient_auction_api::BundleEscrowV2::from_bytes(&data)
         .ok_or_else(|| to_program_error(AuctionError::InvalidBundleEscrowV2State))?;
+    if state.layout().version == ambient_auction_api::AccountLayoutVersion::V2 {
+        let legacy_len = ambient_auction_api::BundleEscrowV2::account_len(
+            ambient_auction_api::AccountLayoutVersion::V1,
+        );
+        if data[legacy_len..].iter().any(|byte| *byte != 0)
+            || state.reward_tier == ambient_auction_api::RequestTier::Small as u64
+        {
+            return Err(to_program_error(AuctionError::InvalidBundleEscrowV2State));
+        }
+        return Ok(());
+    }
     if state.layout().version == ambient_auction_api::AccountLayoutVersion::V3 {
         if state.reward_tier != ambient_auction_api::RequestTier::Small as u64
             || state
