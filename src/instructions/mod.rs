@@ -88,6 +88,27 @@ fn to_program_error(e: AuctionError) -> ProgramError {
     ProgramError::Custom(e.code())
 }
 
+fn validate_verifier_selection_accounts(
+    auction_verifiers: &AccountInfo,
+    slot_hashes: &AccountInfo,
+) -> Result<(), ProgramError> {
+    for (account, expected_key) in [
+        (
+            auction_verifiers,
+            &ambient_auction_api::AUCTION_VERIFIERS_HISTORY_ID,
+        ),
+        (slot_hashes, &crate::SLOT_HASHES_SYSVAR_ID),
+    ] {
+        if account.key() != expected_key || account.is_writable() || account.is_signer() {
+            return Err(ProgramError::InvalidArgument);
+        }
+        if !account.is_owned_by(&crate::SYSVAR_OWNER_ID) {
+            return Err(ProgramError::InvalidAccountOwner);
+        }
+    }
+    Ok(())
+}
+
 fn validate_config_policy_owner(config_policy: &AccountInfo) -> Result<(), ProgramError> {
     if !config_policy.is_owned_by(&ambient_auction_api::ID) {
         return Err(to_program_error(AuctionError::IllegalConfigPolicyV2Owner));

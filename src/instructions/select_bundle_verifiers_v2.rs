@@ -1,5 +1,4 @@
 use crate::instructions::{AuctionInstructionAccounts, to_program_error};
-use crate::{SLOT_HASHES_SYSVAR_ID, SYSVAR_OWNER_ID};
 use ambient_auction_api::{
     InstructionAccounts, SelectBundleVerifiersV2Accounts, SelectBundleVerifiersV2Args,
 };
@@ -31,20 +30,10 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SelectBundleVerifiersV2InstructionAccoun
 
         super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
 
-        for (account, expected_key) in [
-            (
-                account_infos.auction_verifiers,
-                &ambient_auction_api::AUCTION_VERIFIERS_HISTORY_ID,
-            ),
-            (account_infos.slot_hashes, &SLOT_HASHES_SYSVAR_ID),
-        ] {
-            if account.key() != expected_key || account.is_writable() || account.is_signer() {
-                return Err(ProgramError::InvalidArgument);
-            }
-            if !account.is_owned_by(&SYSVAR_OWNER_ID) {
-                return Err(ProgramError::InvalidAccountOwner);
-            }
-        }
+        super::validate_verifier_selection_accounts(
+            account_infos.auction_verifiers,
+            account_infos.slot_hashes,
+        )?;
 
         if let Some(bundle_verification_dispute) = account_infos.bundle_verification_dispute {
             if !bundle_verification_dispute.is_writable() {
