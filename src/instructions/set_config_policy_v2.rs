@@ -130,4 +130,3 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for SetConfigPolicyV2Instruction
         })
     }
 }
-
