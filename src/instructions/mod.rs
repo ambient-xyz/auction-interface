@@ -1,3 +1,4 @@
+mod anchor_replay_spans_v1;
 mod append_data;
 mod authorize_bundle_dispute_evidence_v4;
 mod cancel_bundle;
@@ -30,6 +31,7 @@ mod slash_small_credits;
 mod submit_job;
 mod submit_validation;
 
+pub use anchor_replay_spans_v1::*;
 pub use append_data::*;
 pub use authorize_bundle_dispute_evidence_v4::*;
 pub use cancel_bundle::*;
