@@ -1,3 +1,4 @@
+mod anchor_replay_spans_v1;
 mod append_data;
 mod authorize_bundle_dispute_evidence_v4;
 mod cancel_bundle;
@@ -21,6 +22,7 @@ mod open_bundle_escrow_v2;
 mod place_bid;
 mod post_bundle_pricing;
 mod post_bundle_result_v2;
+mod replay_class_v1;
 mod request_job;
 mod reveal_bid;
 mod seal_bundle_pricing;
@@ -30,6 +32,7 @@ mod slash_small_credits;
 mod submit_job;
 mod submit_validation;
 
+pub use anchor_replay_spans_v1::*;
 pub use append_data::*;
 pub use authorize_bundle_dispute_evidence_v4::*;
 pub use cancel_bundle::*;
@@ -53,6 +56,7 @@ pub use open_bundle_escrow_v2::*;
 pub use place_bid::*;
 pub use post_bundle_pricing::*;
 pub use post_bundle_result_v2::*;
+pub use replay_class_v1::*;
 pub use request_job::*;
 pub use reveal_bid::*;
 pub use seal_bundle_pricing::*;
