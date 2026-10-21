@@ -1,4 +1,4 @@
-use crate::VOTE_ID;
+use crate::{SYSTEM_PROGRAM_ID, VOTE_ID};
 use crate::instructions::{AuctionInstructionAccounts, to_program_error};
 use ambient_auction_api::{
     CommitAuctionSettlementV2Accounts, CommitAuctionSettlementV2Args, InstructionAccounts,
@@ -36,7 +36,9 @@ impl<'a> TryFrom<&'a [AccountInfo]> for CommitAuctionSettlementV2InstructionAcco
 
         super::validate_config_policy_owner(account_infos.config_policy)?;
 
-        if !winner_vote_account.is_owned_by(&VOTE_ID) {
+        if !winner_vote_account.is_owned_by(&VOTE_ID)
+            && !winner_vote_account.is_owned_by(&SYSTEM_PROGRAM_ID)
+        {
             return Err(ProgramError::InvalidAccountOwner);
         }
 
