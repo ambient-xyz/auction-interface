@@ -2,8 +2,8 @@ use crate::instructions::{
     AuctionInstructionAccounts, to_program_error, validate_config_policy_owner,
 };
 use ambient_auction_api::{
-    ConfigPolicyV2PatchKind, InstructionAccounts, SetConfigPolicySmallV3Args,
-    SetConfigPolicyV2Accounts, SetConfigPolicyV2Args,
+    ConfigPolicyV2PatchKind, InstructionAccounts, ReplayPolicyV1, SetConfigPolicyReplayV1Args,
+    SetConfigPolicySmallV3Args, SetConfigPolicyV2Accounts, SetConfigPolicyV2Args,
 };
 use pinocchio::account_info::AccountInfo;
 use pinocchio::instruction::AccountMeta;
@@ -45,6 +45,8 @@ pub struct SetConfigPolicyV2Instruction<'a> {
     pub accounts: SetConfigPolicyV2InstructionAccounts<'a>,
     pub data: SetConfigPolicyV2Args,
     pub small_credit_enabled: Option<u8>,
+    /// Set only by the 104-byte replay payload, whose patch kind is `REPLAY_SETTINGS`.
+    pub replay: Option<ReplayPolicyV1>,
 }
 
 impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for SetConfigPolicyV2Instruction<'a> {
@@ -53,11 +55,38 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for SetConfigPolicyV2Instruction
     fn try_from(value: (&'a [AccountInfo], &'a [u8])) -> Result<Self, Self::Error> {
         let (accounts, data) = value;
 
+        if data.len() == std::mem::size_of::<SetConfigPolicyReplayV1Args>() {
+            let args = SetConfigPolicyReplayV1Args::try_from(data)
+                .map_err(|_| ProgramError::InvalidInstructionData)?;
+            if args.patch_kind != ConfigPolicyV2PatchKind::REPLAY_SETTINGS
+                || args._reserved0 != [0; 7]
+            {
+                return Err(ProgramError::InvalidInstructionData);
+            }
+            return Ok(Self {
+                accounts: SetConfigPolicyV2InstructionAccounts::try_from(accounts)?,
+                data: SetConfigPolicyV2Args {
+                    patch_kind: args.patch_kind,
+                    // Every other field is unused by the replay patch.
+                    ..SetConfigPolicyV2Args::try_from(
+                        &[0u8; std::mem::size_of::<SetConfigPolicyV2Args>()][..],
+                    )
+                    .map_err(|_| ProgramError::InvalidInstructionData)?
+                },
+                small_credit_enabled: None,
+                replay: Some(args.replay),
+            });
+        }
+
         let (data, small_credit_enabled) =
             if data.len() == std::mem::size_of::<SetConfigPolicySmallV3Args>() {
                 let args = SetConfigPolicySmallV3Args::try_from(data)
                     .map_err(|_| ProgramError::InvalidInstructionData)?;
-                if args.patch_kind == ConfigPolicyV2PatchKind::DISPUTE_SETTINGS {
+                if matches!(
+                    args.patch_kind,
+                    ConfigPolicyV2PatchKind::DISPUTE_SETTINGS
+                        | ConfigPolicyV2PatchKind::REPLAY_SETTINGS
+                ) {
                     return Err(ProgramError::InvalidInstructionData);
                 }
                 (
@@ -87,6 +116,7 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for SetConfigPolicyV2Instruction
                     args.patch_kind,
                     ConfigPolicyV2PatchKind::SMALL_CREDIT_SETTINGS
                         | ConfigPolicyV2PatchKind::SMALL_CREDIT_SLASH_AUTHORITY
+                        | ConfigPolicyV2PatchKind::REPLAY_SETTINGS
                 ) {
                     return Err(ProgramError::InvalidInstructionData);
                 }
@@ -96,6 +126,7 @@ impl<'a> TryFrom<(&'a [AccountInfo], &'a [u8])> for SetConfigPolicyV2Instruction
             accounts: SetConfigPolicyV2InstructionAccounts::try_from(accounts)?,
             data,
             small_credit_enabled,
+            replay: None,
         })
     }
 }
