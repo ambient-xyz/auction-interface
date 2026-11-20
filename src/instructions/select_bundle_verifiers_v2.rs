@@ -38,6 +38,9 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SelectBundleVerifiersV2InstructionAccoun
         if account_infos
             .selection_account
             .is_some_and(|account| !account.is_writable())
+            || account_infos
+                .bond_refund_recipient
+                .is_some_and(|account| !account.is_writable() || account.executable())
         {
             return Err(ProgramError::InvalidArgument);
         }
