@@ -43,6 +43,13 @@ impl<'a> TryFrom<&'a [AccountInfo]> for DisputeBundleVerificationV2InstructionAc
             return Err(ProgramError::IncorrectProgramId);
         }
 
+        if let Some(history) = account_infos.auction_verifiers {
+            super::validate_selection_sysvar(
+                history,
+                &ambient_auction_api::AUCTION_VERIFIERS_HISTORY_ID,
+            )?;
+        }
+
         super::validate_current_bundle_escrow(account_infos.bundle_escrow)?;
 
         Ok(Self(account_infos))
