@@ -18,6 +18,7 @@ name = "ambient-auction-interface"
 version = "0.1.0"
 dependencies = [
  "ambient-auction-api",
+ "bytemuck",
  "five8_const",
  "pinocchio",
 ]

@@ -25,6 +25,10 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SetConfigPolicyV2InstructionAccounts<'a>
 
         validate_config_policy_owner(account_infos.config_policy)?;
 
+        if !account_infos.config_policy.is_writable() {
+            return Err(ProgramError::InvalidArgument);
+        }
+
         Ok(Self(account_infos))
     }
 }
