@@ -35,13 +35,14 @@ impl<'a> TryFrom<&'a [AccountInfo]> for SelectBundleVerifiersV2InstructionAccoun
             account_infos.slot_hashes,
         )?;
 
-        if let Some(bundle_verification_dispute) = account_infos.bundle_verification_dispute {
-            if !bundle_verification_dispute.is_writable() {
-                return Err(ProgramError::InvalidArgument);
-            }
-            if !bundle_verification_dispute.is_owned_by(&ambient_auction_api::ID) {
-                return Err(ProgramError::InvalidAccountOwner);
-            }
+        if account_infos
+            .selection_account
+            .is_some_and(|account| !account.is_writable())
+            || account_infos
+                .bond_refund_recipient
+                .is_some_and(|account| !account.is_writable() || account.executable())
+        {
+            return Err(ProgramError::InvalidArgument);
         }
 
         Ok(Self(account_infos))

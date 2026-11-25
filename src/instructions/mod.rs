@@ -101,12 +101,20 @@ fn validate_verifier_selection_accounts(
         ),
         (slot_hashes, &crate::SLOT_HASHES_SYSVAR_ID),
     ] {
-        if account.key() != expected_key || account.is_writable() || account.is_signer() {
-            return Err(ProgramError::InvalidArgument);
-        }
-        if !account.is_owned_by(&crate::SYSVAR_OWNER_ID) {
-            return Err(ProgramError::InvalidAccountOwner);
-        }
+        validate_selection_sysvar(account, expected_key)?;
+    }
+    Ok(())
+}
+
+fn validate_selection_sysvar(
+    account: &AccountInfo,
+    expected_key: &[u8; 32],
+) -> Result<(), ProgramError> {
+    if account.key() != expected_key || account.is_writable() || account.is_signer() {
+        return Err(ProgramError::InvalidArgument);
+    }
+    if !account.is_owned_by(&crate::SYSVAR_OWNER_ID) {
+        return Err(ProgramError::InvalidAccountOwner);
     }
     Ok(())
 }
