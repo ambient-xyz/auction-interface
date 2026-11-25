@@ -39,6 +39,10 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimVerifierLstakeV2InstructionAccounts
             return Err(ProgramError::InvalidAccountOwner);
         }
 
+        if !verifier_vote_account.is_writable() {
+            return Err(ProgramError::InvalidArgument);
+        }
+
         if !vote_authority.is_signer() {
             return Err(ProgramError::MissingRequiredSignature);
         }
@@ -46,6 +50,9 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimVerifierLstakeV2InstructionAccounts
         super::validate_config_policy_owner(account_infos.config_policy)?;
 
         for bundle_verifier_page in account_infos.bundle_verifier_pages {
+            if !bundle_verifier_page.is_writable() {
+                return Err(ProgramError::InvalidArgument);
+            }
             if !bundle_verifier_page.is_owned_by(&ambient_auction_api::ID) {
                 return Err(ProgramError::InvalidAccountOwner);
             }

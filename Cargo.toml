@@ -15,3 +15,6 @@ five8_const = "1.0.0"
 
 [features]
 default = []
+
+[dev-dependencies]
+bytemuck = "1"

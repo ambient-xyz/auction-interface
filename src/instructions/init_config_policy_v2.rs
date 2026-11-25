@@ -21,6 +21,14 @@ impl<'a> TryFrom<&'a [AccountInfo]> for InitConfigPolicyV2InstructionAccounts<'a
             return Err(ProgramError::MissingRequiredSignature);
         }
 
+        if !account_infos.authority.is_writable() || !account_infos.config_policy.is_writable() {
+            return Err(ProgramError::InvalidArgument);
+        }
+
+        if account_infos.system_program.key() != &crate::SYSTEM_PROGRAM_ID {
+            return Err(ProgramError::IncorrectProgramId);
+        }
+
         Ok(Self(account_infos))
     }
 }

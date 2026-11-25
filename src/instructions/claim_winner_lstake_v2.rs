@@ -37,6 +37,10 @@ impl<'a> TryFrom<&'a [AccountInfo]> for ClaimWinnerLstakeV2InstructionAccounts<'
             return Err(ProgramError::InvalidAccountOwner);
         }
 
+        if !winner_vote_account.is_writable() {
+            return Err(ProgramError::InvalidArgument);
+        }
+
         if !vote_authority.is_signer() {
             return Err(ProgramError::MissingRequiredSignature);
         }

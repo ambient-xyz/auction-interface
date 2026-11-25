@@ -20,6 +20,14 @@ impl<'a> TryFrom<&'a [AccountInfo]> for OpenBundleEscrowV2InstructionAccounts<'a
             return Err(ProgramError::MissingRequiredSignature);
         }
 
+        if !account_infos.payer.is_writable() || !account_infos.bundle_escrow.is_writable() {
+            return Err(ProgramError::InvalidArgument);
+        }
+
+        if account_infos.system_program.key() != &crate::SYSTEM_PROGRAM_ID {
+            return Err(ProgramError::IncorrectProgramId);
+        }
+
         super::validate_config_policy_owner(account_infos.config_policy)?;
 
         Ok(Self(account_infos))
