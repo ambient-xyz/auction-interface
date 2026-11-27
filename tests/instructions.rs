@@ -147,6 +147,17 @@ fn case(instruction: AuctionInstruction) -> Option<Case> {
         RequestJob | PlaceBid | EndAuction | CloseBid | SubmitJobOutput | CancelBundle
         | InitBundle | SubmitValidation | RevealBid | CloseRequest | AppendData | InitConfig
         | OpenBundleEscrowV2 => return None,
+        AnchorReplaySpansV1 => case!(
+            AnchorReplaySpansV1Instruction,
+            AnchorReplaySpansV1Args,
+            vec![
+                Account::default().signed(),
+                Account::default().signed().writable(),
+                Account::default().writable(),
+                system()
+            ],
+            4
+        ),
         OpenBundleEscrowV4 => case!(
             OpenBundleEscrowV4Instruction,
             OpenBundleEscrowV4Args,
