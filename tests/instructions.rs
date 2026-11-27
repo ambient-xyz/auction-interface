@@ -158,6 +158,42 @@ fn case(instruction: AuctionInstruction) -> Option<Case> {
             ],
             4
         ),
+        JoinReplayClassV1 => case!(
+            JoinReplayClassV1Instruction,
+            JoinReplayClassV1Args,
+            vec![
+                Account::default().signed(),
+                Account::default().signed().writable(),
+                Account::default().writable(),
+                policy(),
+                system()
+            ],
+            5
+        ),
+        LeaveReplayClassV1 => case!(
+            LeaveReplayClassV1Instruction,
+            LeaveReplayClassV1Args,
+            vec![Account::default().signed(), owned().writable()],
+            2
+        ),
+        RemoveReplayClassMemberV1 => case!(
+            RemoveReplayClassMemberV1Instruction,
+            RemoveReplayClassMemberV1Args,
+            vec![Account::default().signed(), owned().writable(), policy()],
+            3
+        ),
+        SelectReplayVerifiersV1 => case!(
+            SelectReplayVerifiersV1Instruction,
+            SelectReplayVerifiersV1Args,
+            vec![
+                escrow(),
+                selection_sysvar(AUCTION_VERIFIERS_HISTORY_ID),
+                selection_sysvar(HASHES),
+                owned(),
+                policy()
+            ],
+            5
+        ),
         OpenBundleEscrowV4 => case!(
             OpenBundleEscrowV4Instruction,
             OpenBundleEscrowV4Args,
